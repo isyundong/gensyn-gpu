@@ -53,7 +53,7 @@ if [ ! -d "rl-swarm" ]; then
 fi
 cd rl-swarm
 
-# 创建虚拟环境
+# 创建 Python 虚拟环境
 echo "🧪 创建 Python 虚拟环境..."
 $PYTHON_EXEC -m venv .venv
 source .venv/bin/activate
@@ -76,6 +76,24 @@ else
   export PYTORCH_ENABLE_MPS_FALLBACK=1
   export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0
   sed -i 's/torch\.device("mps" if torch\.backends\.mps\.is_available() else "cpu")/torch.device("cpu")/g' hivemind_exp/trainer/hivemind_grpo_trainer.py
+fi
+
+# 🧹 修复 modal-login workspace 报错
+echo "📦 初始化 modal-login 子目录"
+mkdir -p modal-login
+touch modal-login/yarn.lock
+
+# 🧱 配置 Node 模块支持以避免 SSR 构建失败...
+echo "nodeLinker: node-modules" > .yarnrc.yml
+rm -rf .yarn node_modules .pnp.* yarn.lock
+yarn init -y
+yarn install
+yarn add lit-html
+
+# 🚫 跳过浏览器弹窗（WSL 无 GUI）
+if [[ "$IS_WSL" == true ]]; then
+  echo "⚠️ 检测到 WSL 环境，将跳过图形界面钱包弹窗..."
+  export BROWSER=none
 fi
 
 # 启动节点
