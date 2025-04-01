@@ -2,7 +2,15 @@
 
 set -e
 
-echo "🧠 Gensyn RL-Swarm 一键安装脚本 for Linux（支持 GPU / CPU 模式）"
+echo "🧠 Gensyn RL-Swarm 一键安装脚本 for Linux（支持 GPU / CPU 模式 + 兼容 WSL）"
+
+# 检测是否为 WSL
+if grep -qi microsoft /proc/version; then
+  echo "🔍 检测到当前环境为 WSL"
+  IS_WSL=true
+else
+  IS_WSL=false
+fi
 
 # 获取 Ubuntu 主版本号（20 / 22 / 24）
 UBUNTU_VERSION=$(lsb_release -rs | cut -d. -f1)
@@ -27,9 +35,9 @@ echo "📦 安装基础依赖..."
 sudo apt update
 sudo apt install -y git curl wget build-essential $PYTHON_PKG
 
-# 安装 Node.js 18 + Yarn
-if ! command -v node &> /dev/null; then
-  echo "🧱 安装 Node.js..."
+# 安装 Node.js 和 Yarn（Linux 原生，WSL 也走这套）
+if ! command -v node &> /dev/null || [[ "$IS_WSL" == true ]]; then
+  echo "🧱 安装 Node.js (WSL/Linux 环境)..."
   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
   sudo apt install -y nodejs
 fi
