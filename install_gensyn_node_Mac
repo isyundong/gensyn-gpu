@@ -1,0 +1,74 @@
+#!/bin/bash
+
+set -e
+
+echo "🧠 RL-Swarm 一键安装脚本 for Mac mini M4 (包含 Node.js + Yarn 支持)"
+
+# Step 1: 安装 Homebrew（如果没装）
+if ! command -v brew &> /dev/null; then
+  echo "📦 安装 Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+else
+  echo "✅ Homebrew 已安装"
+fi
+
+# Step 2: 安装 Python 3.10+
+if ! command -v python3.10 &> /dev/null; then
+  echo "🐍 安装 Python 3.10..."
+  brew install python@3.10
+else
+  echo "✅ Python 3.10 已安装"
+fi
+
+# Step 3: 安装 Node.js（18+）
+if ! command -v node &> /dev/null; then
+  echo "🧱 安装 Node.js..."
+  brew install node
+else
+  echo "✅ Node.js 已安装"
+fi
+
+# Step 4: 启用 corepack 并安装 Yarn（推荐方式）
+echo "🧵 启用 Yarn 支持..."
+corepack enable
+corepack prepare yarn@stable --activate
+
+# Step 5: 写入 Yarn PATH（如未自动生效）
+YARN_PATH_LINE='export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"'
+if ! grep -q "$YARN_PATH_LINE" "$HOME/.zshrc"; then
+  echo "$YARN_PATH_LINE" >> "$HOME/.zshrc"
+  source "$HOME/.zshrc"
+fi
+
+# Step 6: 检查 Yarn 是否正常
+if ! command -v yarn &> /dev/null; then
+  echo "❌ Yarn 安装失败，请手动检查 corepack 和 Node 环境！"
+  exit 1
+fi
+echo "✅ Yarn 安装成功"
+
+# Step 7: 克隆仓库
+if [ ! -d "rl-swarm" ]; then
+  echo "🔁 克隆 gensyn-ai/rl-swarm 仓库..."
+  git clone https://github.com/gensyn-ai/rl-swarm.git
+else
+  echo "📁 rl-swarm 已存在，跳过克隆"
+fi
+
+cd rl-swarm
+
+# Step 8: 创建 Python 虚拟环境
+echo "🧪 创建虚拟环境..."
+python3.10 -m venv .venv
+source .venv/bin/activate
+
+# Step 9: 安装依赖
+echo "📦 安装 Python 依赖（CPU-only 模式）..."
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# Step 10: 启动 RL-Swarm 节点
+echo "🚀 启动 RL-Swarm 节点..."
+echo "⚠️ 当提示是否加入 testnet 时，请输入 Y 或直接按回车。"
+sleep 2
+bash run_rl_swarm.sh
