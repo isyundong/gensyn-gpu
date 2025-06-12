@@ -60,7 +60,7 @@ source .venv/bin/activate
 
 # 安装 Python 依赖
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements-gpu.txt
 
 # 运行模式选择
 echo ""
